@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbfbf9">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#16161a">
+<title>★ Camille starred paintings</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: #fbfbf9; --fg: #1a1a1a; --dim: #6b6b6b; --line: rgba(20,20,20,.28);
+  --danger: #a4302c;
+}
+@media (prefers-color-scheme: dark) {
+  /* a dustier coral, not the light mode red: that red is close to invisible
+     against near-black, and a brighter one would be the one loud thing on an
+     otherwise quiet page */
+  :root {
+    --bg: #16161a; --fg: #ececec; --dim: #8f8f96;
+    --line: rgba(255,255,255,.28); --danger: #d9776f;
+  }
+}
+/* On the root as well as the body. iOS paints the strip behind Safari's toolbar
+   and the home indicator from the *canvas* background, which comes from the root
+   element; a background set only on <body> leaves that strip Safari's own grey,
+   so a dark gallery ends in a pale band. Only a real phone shows this. */
+html { background: var(--bg); }
+body {
+  margin: 0; padding: clamp(1.5rem, 6vw, 3rem) clamp(1rem, 5vw, 5rem);
+  background: var(--bg); color: var(--fg);
+  font: 16px/1.5 system-ui, sans-serif;
+  /* iOS inflates the font of any block it decides is a narrow column — which is
+     every tile on a phone — so a caption would come out larger than the heading. */
+  -webkit-text-size-adjust: 100%;
+}
+h1 {
+  /* wraps rather than overflowing: the heading and the trash link don't fit on
+     one line of a phone, and a heading is not something to scroll sideways for */
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: .4rem 1.5rem;
+  font-size: 1.1rem; font-weight: 500; color: var(--dim); margin: 0 0 2.5rem;
+}
+h1 a { color: var(--dim); text-decoration: none; font-size: .9rem; }
+h1 .spacer { flex: 1; }
+/* The published address. A URL is long and not the point of the heading, so it
+   sits quieter than the title and wraps rather than pushing anything sideways. */
+.published { font-family: ui-monospace, monospace; font-size: .8rem; overflow-wrap: anywhere; }
+/* Masonry, not a grid: paintings range from wide landscapes to tall portraits,
+   and grid rows are as tall as their tallest cell — which strands short works in
+   a pocket of whitespace. Columns let each tile take only the height it needs.
+   A phone gets exactly one column of whatever width is left, so the painting is
+   as large as the screen allows without any breakpoint saying so. */
+.grid { columns: 260px; column-gap: 2rem; }
+figure {
+  break-inside: avoid;          /* never split a painting across two columns */
+  margin: 0 0 2.5rem;
+  position: relative;           /* anchors the corner button to the painting */
+  /* deliberately block, not inline-block: an inline-block figure stops Chrome
+     balancing across columns entirely and stacks every painting into the first. */
+}
+/* Two targets per tile: the painting opens the full-size file it was archived as,
+   the title opens its Wikipedia article. */
+.art { display: block; }
+img {
+  width: 100%; height: auto; display: block; border-radius: 2px;
+  background: rgba(128,128,128,.15);
+  box-shadow: 0 1px 3px rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.12);
+  transition: box-shadow .15s ease;
+}
+figcaption { margin-top: .85rem; font-size: .875rem; overflow-wrap: anywhere; }
+figcaption b { display: block; font-weight: 600; }
+figcaption time { color: var(--dim); }
+.title { font-style: italic; color: inherit; text-decoration: none; }
+.title:focus-visible { text-decoration: underline; }
+.empty { color: var(--dim); }
+.trashed img { opacity: .55; }
+
+/* The corner button: ★ to unstar in the gallery, ⤺ to restore in the trash.
+   Always visible, and 2.75rem square — a finger's worth, not a cursor's. */
+.corner { position: absolute; top: .5rem; right: .5rem; margin: 0; }
+.corner button {
+  display: block; width: 2.75rem; height: 2.75rem; padding: 0;
+  border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(0,0,0,.45); color: #fff;
+  font-size: 1.1rem; line-height: 2.75rem;
+  transition: opacity .15s ease, background .15s ease;
+}
+.corner button:focus-visible { opacity: 1; background: rgba(0,0,0,.8); }
+
+/* Hover-only polish, gated: a tap on a touchscreen leaves `:hover` stuck on the
+   thing you tapped, so anything that *reveals* on hover would be revealed on one
+   painting and hidden on the rest for the whole visit. Outside this block those
+   states are simply the resting state, which is why the button is dimmed here
+   rather than brightened — a phone gets it at full strength. */
+@media (hover: hover) {
+  h1 a:hover { color: var(--fg); text-decoration: underline; }
+  .art:hover img { box-shadow: 0 2px 6px rgba(0,0,0,.28), 0 14px 36px rgba(0,0,0,.2); }
+  .title:hover { text-decoration: underline; }
+  .trashed:hover img { opacity: 1; }
+  .corner button { width: 2rem; height: 2rem; font-size: .95rem; line-height: 2rem; opacity: .5; }
+  figure:hover .corner button { opacity: .85; }
+  .corner button:hover { opacity: 1; background: rgba(0,0,0,.8); }
+  .flash button:hover, .add button:hover, .sync button:not(:disabled):hover {
+    background: var(--fg); color: var(--bg); border-color: var(--fg);
+  }
+  .danger button:hover {
+    background: var(--danger); color: var(--bg); border-color: var(--danger);
+  }
+}
+
+/* The flash: shown once, right after an unstar, a restore or an emptying. */
+.flash {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .9rem;
+  margin: -1.5rem 0 2.5rem; color: var(--dim); font-size: .9rem;
+}
+.flash form { margin: 0; }
+/* Quiet by default — an outline, not a filled block, so the paintings stay the
+   only solid thing on the page. Each fills in only on hover (below), the same
+   dim-until-touched treatment as the corner button. */
+.flash button, .danger button, .add button, .sync button {
+  border: 1px solid var(--line); border-radius: 2px; /* the images' own radius */
+  padding: .3rem .8rem; cursor: pointer;
+  background: transparent; color: var(--fg); font: inherit; font-weight: 500;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+/* Paste a Wikipedia image link to hang a painting you found yourself. Sits above
+   the grid on the served page only — the archived copy has nothing to post to. */
+.add { display: flex; flex-wrap: wrap; gap: .6rem; margin: 0 0 2.5rem; }
+.add input {
+  flex: 1; min-width: 12rem; max-width: 34rem; padding: .4rem .7rem;
+  border: 1px solid var(--line); border-radius: 2px;
+  background: transparent; color: var(--fg); font: inherit;
+}
+.add input:focus-visible { outline: 2px solid var(--fg); outline-offset: -1px; }
+.danger { margin: 0; }
+.danger button { color: var(--danger); border-color: var(--danger); }
+.sync { margin: 0; }
+.sync button:disabled { opacity: .4; border-color: var(--line); cursor: default; }
+
+/* Published page only: who made the thing you're looking at. Quiet, and clear of
+   the last row of paintings — a masonry's columns end at different heights, so it
+   needs real space above it rather than a hairline rule. Centered, unlike the
+   rest of the (left-aligned) page: it's a closing note, not part of the content
+   flow the grid and heading belong to. */
+footer { margin: 3.5rem 0 0; color: var(--dim); font-size: .85rem; text-align: center; }
+footer p { margin: 0 0 .35rem; }
+footer p:last-child { margin-bottom: 0; }
+footer a { color: inherit; }
+</style>
+<h1>★ Camille starred 1 painting<a class="published" href="https://camille-katze.github.io/artwall-gallery/" target="_blank" rel="noopener noreferrer">https://camille-katze.github.io/artwall-gallery/ ↗</a></h1>
+<div class="grid" style="max-width: 260px"><figure class=""><a class="art" href="images/Q18573984.jpg"><img src="images/Q18573984.jpg" alt="Apple Tree in Blossom" loading="lazy"></a><figcaption><b>Carl Fredrik Hill</b><a class="title" href="https://en.wikipedia.org/wiki/Carl_Fredrik_Hill" target="_blank" rel="noopener noreferrer">Apple Tree in Blossom</a> <time>1877</time></figcaption></figure></div>
+</html>
