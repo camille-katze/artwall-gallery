@@ -53,7 +53,6 @@ h1 .spacer { flex: 1; }
 figure {
   break-inside: avoid;          /* never split a painting across two columns */
   margin: 0 0 2.5rem;
-  position: relative;           /* anchors the corner button to the painting */
   /* deliberately block, not inline-block: an inline-block figure stops Chrome
      balancing across columns entirely and stacks every painting into the first. */
 }
@@ -67,38 +66,52 @@ img {
   transition: box-shadow .15s ease;
 }
 figcaption { margin-top: .85rem; font-size: .875rem; overflow-wrap: anywhere; }
-figcaption b { display: block; font-weight: 600; }
+/* Artist and its actions (trash/restore, share) share a row — not the image,
+   which stays free of anything floating on top of it on every tile of a page
+   that's nothing but tiles. `min-width: 0` lets the name itself keep wrapping
+   inside the flex item instead of pushing the actions out past the column. */
+.cap-top { display: flex; align-items: baseline; gap: .5rem; }
+.cap-top b { flex: 1; min-width: 0; font-weight: 600; }
 figcaption time { color: var(--dim); }
 .title { font-style: italic; color: inherit; text-decoration: none; }
 .title:focus-visible { text-decoration: underline; }
 .empty { color: var(--dim); }
 .trashed img { opacity: .55; }
 
-/* The corner button: ★ to unstar in the gallery, ⤺ to restore in the trash.
-   Always visible, and 2.75rem square — a finger's worth, not a cursor's. */
-.corner { position: absolute; top: .5rem; right: .5rem; margin: 0; }
-.corner button {
-  display: block; width: 2.75rem; height: 2.75rem; padding: 0;
-  border: 0; border-radius: 50%; cursor: pointer;
-  background: rgba(0,0,0,.45); color: #fff;
-  font-size: 1.1rem; line-height: 2.75rem;
-  transition: opacity .15s ease, background .15s ease;
+/* 🗑️ to trash a painting in the gallery, ⤺ to restore it from the trash, grouped
+   with the smaller, quieter 🔗 share link (below) in `.cap-top`, beside the name.
+   No button chrome on either — no longer floating over the art, they sit on the
+   page's own background, which a solid circle was only ever there to read against. */
+.actions { display: flex; align-items: center; gap: .35rem; flex: none; }
+.actions form { margin: 0; }
+.actions button, .actions a {
+  display: block; width: 1.6rem; height: 1.6rem; padding: 0;
+  border: 0; background: none; cursor: pointer;
+  font-size: .95rem; line-height: 1.6rem; text-align: center; text-decoration: none;
+  transition: opacity .15s ease;
 }
-.corner button:focus-visible { opacity: 1; background: rgba(0,0,0,.8); }
+.actions button:focus-visible, .actions a:focus-visible {
+  opacity: 1; outline: 2px solid var(--fg); outline-offset: 1px;
+}
+
+/* The share link: lower opacity than trash/restore, so it reads as the
+   lighter-weight action of the two. */
+.actions .share {
+  width: 1.3rem; height: 1.3rem; font-size: .8rem; line-height: 1.3rem; opacity: .6;
+}
+.actions .share:focus-visible { opacity: 1; }
 
 /* Hover-only polish, gated: a tap on a touchscreen leaves `:hover` stuck on the
-   thing you tapped, so anything that *reveals* on hover would be revealed on one
-   painting and hidden on the rest for the whole visit. Outside this block those
-   states are simply the resting state, which is why the button is dimmed here
-   rather than brightened — a phone gets it at full strength. */
+   thing you tapped, so a hover effect left ungated would stay revealed on one
+   painting and hidden on the rest for the whole visit. */
 @media (hover: hover) {
   h1 a:hover { color: var(--fg); text-decoration: underline; }
   .art:hover img { box-shadow: 0 2px 6px rgba(0,0,0,.28), 0 14px 36px rgba(0,0,0,.2); }
   .title:hover { text-decoration: underline; }
   .trashed:hover img { opacity: 1; }
-  .corner button { width: 2rem; height: 2rem; font-size: .95rem; line-height: 2rem; opacity: .5; }
-  figure:hover .corner button { opacity: .85; }
-  .corner button:hover { opacity: 1; background: rgba(0,0,0,.8); }
+  .actions button { opacity: .75; }
+  .actions button:hover { opacity: 1; }
+  .actions .share:hover { opacity: 1; }
   .flash button:hover, .add button:hover, .sync button:not(:disabled):hover {
     background: var(--fg); color: var(--bg); border-color: var(--fg);
   }
@@ -114,8 +127,7 @@ figcaption time { color: var(--dim); }
 }
 .flash form { margin: 0; }
 /* Quiet by default — an outline, not a filled block, so the paintings stay the
-   only solid thing on the page. Each fills in only on hover (below), the same
-   dim-until-touched treatment as the corner button. */
+   only solid thing on the page. Each fills in only on hover (below). */
 .flash button, .danger button, .add button, .sync button {
   border: 1px solid var(--line); border-radius: 2px; /* the images' own radius */
   padding: .3rem .8rem; cursor: pointer;
@@ -148,5 +160,5 @@ footer p:last-child { margin-bottom: 0; }
 footer a { color: inherit; }
 </style>
 <h1>★ Camille starred 1 painting</h1>
-<div class="grid" style="max-width: 260px"><figure class=""><a class="art" href="images/Q18573984.jpg"><img src="thumbs/Q18573984.jpg" alt="Apple Tree in Blossom" loading="lazy"></a><figcaption><b>Carl Fredrik Hill</b><a class="title" href="https://en.wikipedia.org/wiki/Carl_Fredrik_Hill" target="_blank" rel="noopener noreferrer">Apple Tree in Blossom</a> <time>1877</time></figcaption></figure></div><footer><p>Starred with <a href="https://github.com/artemave/artwall" target="_blank" rel="noopener noreferrer">artwall</a>.</p><p>Paintings and their details from <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata</a> and <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.</p></footer>
+<div class="grid" style="max-width: 260px"><figure class=""><a class="art" href="images/Q18573984.jpg"><img src="thumbs/Q18573984.jpg" alt="Apple Tree in Blossom" loading="lazy"></a><figcaption><div class="cap-top"><b>Carl Fredrik Hill</b><div class="actions"><a class="share" href="https://commons.wikimedia.org/wiki/File:Apple_Tree_in_Blossom_%28Carl_Fredrik_Hill%29_-_Nationalmuseum_-_18868.tif" target="_blank" rel="noopener noreferrer" title="Open Apple Tree in Blossom in Commons" aria-label="Open Apple Tree in Blossom in Commons">🔗</a></div></div><a class="title" href="https://en.wikipedia.org/wiki/Carl_Fredrik_Hill" target="_blank" rel="noopener noreferrer">Apple Tree in Blossom</a> <time>1877</time></figcaption></figure></div><footer><p>Starred with <a href="https://github.com/artemave/artwall" target="_blank" rel="noopener noreferrer">artwall</a>.</p><p>Paintings and their details from <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata</a> and <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia Commons</a>.</p></footer>
 </html>
